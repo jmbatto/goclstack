@@ -219,6 +219,7 @@ RUN echo '#!/bin/bash\n\
 WORKDIR /opt
 RUN git clone -b v6.0 https://github.com/pocl/pocl.git pocl_6.0
 WORKDIR /opt/pocl_6.0
+RUN mkdir -p /opt/pocl-6.0
 RUN mkdir -p /opt/pocl_6.0/build
 WORKDIR /opt/pocl_6.0/build
 RUN cmake -DCMAKE_INSTALL_PREFIX=/opt/pocl-6.0 \ 
@@ -226,6 +227,7 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/opt/pocl-6.0 \
         -DCMAKE_CXX_FLAGS="-funroll-loops -march=native" \
         -DCMAKE_C_FLAGS="-funroll-loops -march=native" \ 
         -DWITH_LLVM_CONFIG=/usr/local/llvm/bin/llvm-config \
+        -DPOCL_VULKAN_VALIDATE=ON \
         -DSTATIC_LLVM=ON \
         --trace-expand \
         --trace-source=CMakeLists.txt \
@@ -233,13 +235,13 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/opt/pocl-6.0 \
 RUN make
 RUN make install
 
-ENV PATH="/opt/pocl_6.0/bin:${PATH}"
-
+ENV PATH="/opt/pocl-6.0/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/pocl-6.0/lib"
 
 # install check
 RUN go version
 RUN clang --version
-RUN poclcc -l	
+RUN /opt/pocl-6.0/bin/poclcc -l	
 RUN llvm-goc-polly --version
 RUN vulkaninfo --summary
 
